@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { tareasService } from '../services/api';
 import { TrashIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 
@@ -8,6 +10,11 @@ const ListaTareas = () => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [tareaActual, setTareaActual] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return '';
+    return format(new Date(fecha), "d 'de' MMMM, yyyy HH:mm", { locale: es });
+  };
 
   const cargarTareas = async () => {
     try {
@@ -36,10 +43,20 @@ const ListaTareas = () => {
       return;
     }
 
+    // Procesar fecha y hora de vencimiento
+    const fecha = formData.get('fecha_vencimiento_date');
+    const hora = formData.get('fecha_vencimiento_time');
+    let fecha_vencimiento = null;
+    
+    if (fecha && hora) {
+      fecha_vencimiento = new Date(`${fecha}T${hora}`).toISOString();
+    }
+
     const nuevaTarea = {
       titulo: titulo.trim(),
       descripcion: formData.get('descripcion')?.trim() || '',
-      estado: formData.get('estado') || 'PENDIENTE'
+      estado: formData.get('estado') || 'PENDIENTE',
+      fecha_vencimiento: fecha_vencimiento
     };
 
     try {
@@ -97,7 +114,6 @@ const ListaTareas = () => {
 
   return (
     <div className="py-8">
-      {/* Header */}
       <div className="mb-8 bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">Gestor de Tareas</h1>
@@ -114,7 +130,6 @@ const ListaTareas = () => {
         </div>
       </div>
 
-      {/* Modal para crear/editar tarea */}
       {modalAbierto && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
@@ -124,8 +139,8 @@ const ListaTareas = () => {
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="titulo" className="block text-sm font-medium text-gray-300 mb-1">
-                    Título *
+                  <label htmlFor="titulo" className="block text-sm font-medium text-white mb-1">
+                    Título
                   </label>
                   <input
                     id="titulo"
@@ -138,7 +153,7 @@ const ListaTareas = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="descripcion" className="block text-sm font-medium text-gray-300 mb-1">
+                  <label htmlFor="descripcion" className="block text-sm font-medium text-white mb-1">
                     Descripción
                   </label>
                   <textarea
@@ -151,7 +166,28 @@ const ListaTareas = () => {
                   ></textarea>
                 </div>
                 <div>
-                  <label htmlFor="estado" className="block text-sm font-medium text-gray-300 mb-1">
+                  <label htmlFor="fecha_vencimiento" className="block text-sm font-medium text-white mb-1">
+                    Fecha de vencimiento
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      id="fecha_vencimiento_date"
+                      name="fecha_vencimiento_date"
+                      type="date"
+                      defaultValue={tareaActual?.fecha_vencimiento ? new Date(tareaActual.fecha_vencimiento).toISOString().split('T')[0] : ''}
+                      className="flex-1 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2"
+                    />
+                    <input
+                      id="fecha_vencimiento_time"
+                      name="fecha_vencimiento_time"
+                      type="time"
+                      defaultValue={tareaActual?.fecha_vencimiento ? new Date(tareaActual.fecha_vencimiento).toTimeString().slice(0,5) : ''}
+                      className="w-32 rounded bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 p-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="estado" className="block text-sm font-medium text-white mb-1">
                     Estado
                   </label>
                   <select
@@ -186,7 +222,6 @@ const ListaTareas = () => {
         </div>
       )}
 
-      {/* Grid de tareas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {['PENDIENTE', 'COMPLETADA', 'INCOMPLETA'].map((estado) => (
           <div key={estado} className="bg-gray-800 rounded-lg shadow-lg p-4">
@@ -206,9 +241,14 @@ const ListaTareas = () => {
                     className={`border-l-4 rounded-lg p-4 ${getColorEstado(tarea.estado)} bg-gray-700/50 hover:bg-gray-700 transition-colors duration-200`}
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold text-white">{tarea.titulo}</h3>
                         <p className="text-gray-300 text-sm mt-1">{tarea.descripcion}</p>
+                        {tarea.fecha_vencimiento && (
+                          <p className="text-sm text-gray-400 mt-2">
+                            <span className="font-medium">Vence:</span> {formatearFecha(tarea.fecha_vencimiento)}
+                          </p>
+                        )}
                       </div>
                       <div className="flex space-x-2">
                         <button 
