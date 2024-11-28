@@ -1,0 +1,103 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+}
+
+/* En lugar de usar @apply, definimos las clases directamente */
+.form-input {
+  width: 100%;
+  border-radius: 0.375rem;
+  border-color: rgb(75, 85, 99);
+  background-color: rgb(55, 65, 81);
+  color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.form-input:focus {
+  border-color: rgb(59, 130, 246);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  background-color: rgb(37, 99, 235);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: rgb(29, 78, 216);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-container {
+  margin-top: 2.5rem;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  background-color: rgb(31, 41, 55);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Estilos adicionales para inputs y formularios */
+input {
+  background-color: rgb(55, 65, 81);
+  color: white;
+  border: 1px solid rgb(75, 85, 99);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+input:focus {
+  outline: none;
+  border-color: rgb(59, 130, 246);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+input::placeholder {
+  color: rgb(156, 163, 175);
+}
+
+/* Aseguramos que los puntos de la contraseña sean blancos */
+input[type="password"] {
+  color: white;
+  font-family: text-security-disc;
+  -webkit-text-security: disc;
+}
+
+/* Estilos para labels */
+label {
+  color: rgb(209, 213, 219);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}

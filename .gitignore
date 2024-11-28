@@ -1,0 +1,28 @@
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Directorios de entorno virtual
+env/
+venv/
+
+# Archivos de configuración local de Django
+*.pyc
+__pycache__/
+db.sqlite3
+local_settings.py
+
+# Archivos de log
+*.log
+
+# Archivos de dependencias de Node.js
+node_modules/
+
+# Archivos de construcción de React
+frontend/build/
+
+# Archivos de editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
