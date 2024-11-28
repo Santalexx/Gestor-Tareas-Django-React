@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { tareasService } from '../services/api';
 import { TrashIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
@@ -11,39 +11,79 @@ const ListaTareas = () => {
   const [tareaActual, setTareaActual] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const formatearFecha = (fecha) => {
-    if (!fecha) return '';
-    return format(new Date(fecha), "d 'de' MMMM, yyyy HH:mm", { locale: es });
+  const verificarTareasVencidas = async (tareasActuales) => {
+    const tareasActualizadas = await Promise.all(
+      tareasActuales.map(async (tarea) => {
+        if (
+          tarea.fecha_vencimiento &&
+          tarea.estado === 'PENDIENTE' &&
+          isPast(new Date(tarea.fecha_vencimiento))
+        ) {
+          const tareaActualizada = {
+            ...tarea,
+            estado: 'INCOMPLETA'
+          };
+          
+          try {
+            await tareasService.actualizarTarea(tarea.id, tareaActualizada);
+            toast.error(`La tarea "${tarea.titulo}" ha vencido y se marcó como incompleta`);
+            return tareaActualizada;
+          } catch (error) {
+            console.error('Error al actualizar tarea vencida:', error);
+            return tarea;
+          }
+        }
+        return tarea;
+      })
+    );
+    
+    return tareasActualizadas;
   };
 
-  const cargarTareas = async () => {
+  const cargarTareas = useCallback(async () => {
     try {
       const data = await tareasService.getTareas();
-      setTareas(data);
+      const tareasActualizadas = await verificarTareasVencidas(data);
+      setTareas(tareasActualizadas);
     } catch (error) {
       console.error('Error al cargar tareas:', error);
       toast.error('Error al cargar las tareas');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarTareas();
-  }, []);
+  }, [cargarTareas]);
+
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      if (tareas.length > 0) {
+        verificarTareasVencidas(tareas).then(tareasActualizadas => {
+          setTareas(tareasActualizadas);
+        });
+      }
+    }, 60000); // Verificar cada minuto
+
+    return () => clearInterval(intervalo);
+  }, [tareas]);
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return '';
+    return format(new Date(fecha), "d 'de' MMMM, yyyy HH:mm", { locale: es });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    // Validación de campos requeridos
     const titulo = formData.get('titulo');
     if (!titulo || titulo.trim() === '') {
       toast.error('El título es requerido');
       return;
     }
 
-    // Procesar fecha y hora de vencimiento
     const fecha = formData.get('fecha_vencimiento_date');
     const hora = formData.get('fecha_vencimiento_time');
     let fecha_vencimiento = null;

@@ -1,18 +1,50 @@
-asgiref==3.8.1
-certifi==2024.8.30
-charset-normalizer==3.4.0
-coreschema==0.0.4
+# Este archivo contiene todas las herramientas necesarias para que el gestor de tareas funcione correctamente
+# El símbolo == seguido de números indica la versión específica de cada herramienta
+
+# --- Herramientas Fundamentales ---
+
+# Django: Es el framework principal que permite crear toda la aplicación web
 Django==5.1.3
-django-cors-headers==4.6.0
+
+# Django Rest Framework: Permite crear la API que comunica el frontend con el backend
 djangorestframework==3.15.2
+
+# JWT: Maneja la seguridad y autenticación de usuarios de forma segura
 djangorestframework-simplejwt==5.3.1
-idna==3.10
-itypes==1.2.0
+PyJWT==2.10.0
+
+# --- Herramientas de Compatibilidad y Comunicación ---
+
+# Permite que diferentes partes de la aplicación se comuniquen entre sí
+django-cors-headers==4.6.0
+
+# Herramientas para manejar solicitudes HTTP y comunicación con servicios externos
+requests==2.32.3
+urllib3==2.2.3
+
+# --- Herramientas de Formato y Procesamiento ---
+
+# Maneja diferentes tipos de texto y caracteres especiales
+charset-normalizer==3.4.0
+asgiref==3.8.1
+
+# Ayuda a trabajar con la base de datos y formato SQL
+sqlparse==0.5.2
+
+# --- Herramientas de Plantillas y Documentación ---
+
+# Sistema de plantillas para generar páginas HTML dinámicas
 Jinja2==3.1.4
 MarkupSafe==3.0.2
-PyJWT==2.10.0
-requests==2.32.3
-setuptools==75.6.0
-sqlparse==0.5.2
+
+# Ayuda a crear y mostrar documentación de la API
+coreschema==0.0.4
 uritemplate==4.1.1
-urllib3==2.2.3
+itypes==1.2.0
+
+# --- Utilidades Generales ---
+
+# Herramientas básicas de Python
+setuptools==75.6.0
+idna==3.10
+certifi==2024.8.30

@@ -1,22 +1,31 @@
-// api.js
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+/**
+ * ARCHIVO API.JS
+ * Este archivo es como el centro de comunicaciones de la aplicación.
+ * Se encarga de todas las conversaciones entre la aplicación y el servidor.
+ */
 
+// Importamos las herramientas necesarias para hacer peticiones al servidor y mostrar mensajes
+import axios from 'axios';  // axios es como un mensajero que envía y recibe datos
+import { toast } from 'react-hot-toast';  // toast muestra mensajes bonitos al usuario
+
+// Definimos la dirección base del servidor
 const API_URL = 'http://localhost:8000/api';
 
+// Creamos nuestro mensajero personalizado con configuración básica
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json',  // Le decimos que trabajaremos con datos en formato JSON
   }
 });
 
-// Interceptor para añadir el token
+// SISTEMA DE SEGURIDAD
+// Este interceptor revisa cada mensaje antes de enviarlo y le añade el permiso del usuario (token)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');  // Busca el permiso del usuario
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;  // Añade el permiso al mensaje
     }
     return config;
   },
@@ -25,25 +34,31 @@ api.interceptors.request.use(
   }
 );
 
-// Manejador de errores global
+/**
+ * SISTEMA CENTRAL DE MANEJO DE ERRORES
+ * Esta función se encarga de procesar todos los errores que puedan ocurrir
+ * cuando hablamos con el servidor y mostrar mensajes apropiados al usuario
+ */
 const errorHandler = (error) => {
+  // Registramos el error para poder diagnosticar problemas
   console.error('API Error:', {
     status: error.response?.status,
     data: error.response?.data,
     error: error.message
   });
 
-  // Manejo de errores de autenticación
+  // Si el error es porque el permiso expiró o no es válido
   if (error.response?.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+    localStorage.removeItem('token');  // Eliminamos el permiso inválido
+    window.location.href = '/login';  // Enviamos al usuario a iniciar sesión
     return Promise.reject(error);
   }
 
-  // Manejo específico de errores de validación
+  // Si el error es por datos inválidos
   if (error.response?.status === 400 && error.response?.data) {
     const errorData = error.response.data;
     if (typeof errorData === 'object') {
+      // Mostramos cada error encontrado
       Object.keys(errorData).forEach(key => {
         const message = Array.isArray(errorData[key]) 
           ? errorData[key][0] 
@@ -55,7 +70,7 @@ const errorHandler = (error) => {
     }
   }
 
-  // Mensaje de error para el usuario
+  // Preparamos un mensaje de error amigable para el usuario
   const errorMessage = 
     error.response?.data?.detail ||
     error.response?.data?.message ||
@@ -67,13 +82,22 @@ const errorHandler = (error) => {
   return Promise.reject(error);
 };
 
-// Interceptor para manejar respuestas
+// Configuramos el sistema para que use nuestro manejador de errores
 api.interceptors.response.use(
   (response) => response,
   errorHandler
 );
 
+/**
+ * SERVICIOS DE AUTENTICACIÓN
+ * Aquí definimos todas las funciones relacionadas con la cuenta del usuario:
+ * - Registro de nuevos usuarios
+ * - Inicio de sesión
+ * - Cierre de sesión
+ * - Verificación de autenticación
+ */
 export const authService = {
+  // Función para registrar nuevos usuarios
   register: async (userData) => {
     try {
       const response = await api.post('/usuarios/', userData);
@@ -84,11 +108,13 @@ export const authService = {
     }
   },
 
+  // Función para iniciar sesión
   login: async (credentials) => {
     try {
       const response = await api.post('/token/', credentials);
       
       if (response.data.access) {
+        // Guardamos el permiso de acceso
         localStorage.setItem('token', response.data.access);
         api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
         toast.success('¡Bienvenido!');
@@ -100,18 +126,31 @@ export const authService = {
     }
   },
 
+  // Función para cerrar sesión
   logout: () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('token');  // Eliminamos el permiso
     delete api.defaults.headers.common['Authorization'];
-    window.location.href = '/login';
+    window.location.href = '/login';  // Enviamos al usuario a la página de login
   },
 
+  // Función para verificar si el usuario está autenticado
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('token');  // Verifica si existe un permiso
   }
 };
 
+/**
+ * SERVICIOS DE TAREAS
+ * Aquí definimos todas las operaciones que podemos hacer con las tareas:
+ * - Obtener todas las tareas
+ * - Obtener una tarea específica
+ * - Crear nuevas tareas
+ * - Actualizar tareas existentes
+ * - Eliminar tareas
+ * - Filtrar tareas por estado
+ */
 export const tareasService = {
+  // Obtener todas las tareas
   getTareas: async () => {
     try {
       const response = await api.get('/tareas/');
@@ -121,6 +160,7 @@ export const tareasService = {
     }
   },
 
+  // Obtener una tarea específica por su ID
   getTareaPorId: async (id) => {
     try {
       const response = await api.get(`/tareas/${id}/`);
@@ -130,26 +170,35 @@ export const tareasService = {
     }
   },
 
+  // Crear una nueva tarea
   crearTarea: async (tarea) => {
     try {
       const response = await api.post('/tareas/', tarea);
-      toast.success('Tarea creada exitosamente');
+      // Solo mostrar mensaje si no es una actualización automática
+      if (!tarea.actualizacionAutomatica) {
+        toast.success('Tarea creada exitosamente');
+      }
       return response.data;
     } catch (error) {
       return errorHandler(error);
     }
   },
 
+  // Actualizar una tarea existente
   actualizarTarea: async (id, tarea) => {
     try {
       const response = await api.put(`/tareas/${id}/`, tarea);
-      toast.success('Tarea actualizada exitosamente');
+      // Solo mostrar mensaje si no es una actualización automática
+      if (!tarea.actualizacionAutomatica) {
+        toast.success('Tarea actualizada exitosamente');
+      }
       return response.data;
     } catch (error) {
       return errorHandler(error);
     }
   },
 
+  // Eliminar una tarea
   eliminarTarea: async (id) => {
     try {
       await api.delete(`/tareas/${id}/`);
@@ -159,6 +208,7 @@ export const tareasService = {
     }
   },
 
+  // Obtener tareas filtradas por estado
   getTareasPorEstado: async (estado) => {
     try {
       const response = await api.get(`/tareas/estado/${estado}/`);
@@ -169,4 +219,5 @@ export const tareasService = {
   }
 };
 
+// Exportamos la configuración de api para usarla en otros archivos
 export default api;
