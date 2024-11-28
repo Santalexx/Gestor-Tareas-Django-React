@@ -73,16 +73,3 @@ Este es un proyecto de gestión de tareas desarrollado con Django para el backen
 3. Abre un navegador web y ve a la URL: `http://localhost:5173`
 
 ¡Listo! Ahora deberías poder ver y utilizar la aplicación Gestor de Tareas en tu entorno local.
-
-## Contribución
-
-Si deseas contribuir a este proyecto, por favor sigue estos pasos:
-
-1. Haz un fork del repositorio.
-2. Crea una nueva rama para tu funcionalidad o corrección de errores.
-3. Realiza los cambios necesarios y haz commit de tus modificaciones.
-4. Envía un pull request para que revisemos tus cambios.
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
